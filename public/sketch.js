@@ -5,6 +5,9 @@
 
 
 var wordSentimentDict;
+var backupDict;
+var words = [];
+var prevLength = 0;
 
 function preload() {
   wordSentimentDict = loadJSON('afinn165.json');
@@ -26,7 +29,7 @@ function setup() {
     var totalScore = 0;
 
     if (/\s+$/.test(textinput)) {
-      var words = textinput.split(/\s/);
+      words = textinput.split(/\s/);
       console.log(words);
       for (var i = 0; i < words.length; i++) {
         var word = words[i].toLowerCase();
@@ -40,6 +43,7 @@ function setup() {
           // console.log(word, score);
           totalScore += Number(score);
           scoredwords.push(' ' + word + ': ' + score);
+          draw();
         }
       }
     }
@@ -56,5 +60,12 @@ function setup() {
 
 
 function draw() {
-  circle(mouseX, mouseY, 20);
+  // new word typed
+  console.log("words.length: " + words.length);
+  console.log("prevLength: " + prevLength);
+  if (words.length > prevLength) {
+    console.log("thehe!!");
+    circle(random(0, 400), random(0, 400), 20)
+    prevLength = words.length;
+  }
 }
