@@ -11,7 +11,7 @@ var words = [];
 var prevLength = 0;
 
 const num = 2000;
-const noiseScale = 0.01
+const noiseScale = 0.02
 const particles = [];
 
 var hue;
@@ -28,14 +28,15 @@ function setup() {
   createCanvas(600, 600);
   colorMode(HSB);
 
-  background(40, 100, 90);
+  background(0);
 
-
+  // set up particles for perlin noise flow field
   for(let i = 0; i < num; i++) {
-    particles.push(createVector(random(width), random(height)))
+    particles.push(createVector(random(width), random(height)));
     stroke(255)
   }
 
+  // get text input
   var txt = select('#txt');
   txt.input(typing);
 
@@ -64,7 +65,6 @@ function setup() {
         // console.log(word, score);
         totalScore += Number(score);
         // scoredwords.push(' ' + word + ': ' + score);
-        draw();
       } 
 
       words.push(word);
@@ -79,20 +79,23 @@ function setup() {
   // var wordlist = select('#wordlist');
   // wordlist.html(scoredwords);
 
-  console.log(txt.value());
+  // console.log(txt.value());
   }
 
 
 function draw() {
+  // colorMode(RGBA)
+  background(0, 0.1);
+
   // new word typed
-  console.log("words.length: " + words.length);
-  console.log("prevLength: " + prevLength);
+  // console.log("words.length: " + words.length);
+  // console.log("prevLength: " + prevLength);
  
   if (words.length > prevLength) {
-    console.log(words);
-    console.log(lastWordScore);
+    // console.log(words);
+    // console.log(lastWordScore);
 
-    //noiseSeed(millis());
+    noiseSeed(millis());
     
     if (lastWordScore > 0) { 
       // positive
@@ -111,25 +114,23 @@ function draw() {
       hue = random(30, 60);
       sat = 2;
     }
-    fill(color(hue, sat, bright));
 
-    // blob = new Blob(random(0, width), random(0, height), lastWordScore * 100, lastWordScore + 0.1);
-    // blob.display();
     prevLength = words.length;
   }
-  stroke(hue, sat, bright);
   
 
   for (let i = 0; i < num; i++) {
     let p = particles[i]
-    point(p.x, p.y)
+    stroke(hue, sat, bright);
+    strokeWeight(1.2);
+    point(p.x, p.y);
     let n = noise(p.x * noiseScale, p.y * noiseScale);
-    let a = TAU * n
-    p.x += cos(a) 
-    p.y += sin(a)
+    let a = TAU * n;
+    p.x += cos(a);
+    p.y += sin(a);
     if (!onScreen(p)) {
-      p.x = random(width)
-      p.y = random(height)
+      p.x = random(width);
+      p.y = random(height);
     }
   }
 }
