@@ -6,50 +6,17 @@
 
 var wordSentimentDict;
 var backupDict;
-var lastWordScore = 0;
+var lastWordScore;
 var words = [];
 var prevLength = 0;
 
-var rad;
-var res;
-var angle;
-var blobObj = [];
+const num = 2000;
+const noiseScale = 0.01
+const particles = [];
 
-class Blob {
-  constructor(x, y, rad, displace) {
-    this.x = x;
-    this.y = y;
-    this.rad = rad;
-    this.szDelta = this.rad * displace; // ie., displace = 0.2 sets the displace amount 20% of the radius
-    this.blobObj = [];
-    
-    // constants
-    this.res = 10; // the number of points 
-    this.angle = 360 / this.res; // angular distance between each point
-  }
-  
-  display() {
-    push(); // It's a good practice to use push and pop whenevewer you translate screen coordinates
-    noStroke(); // Do not fill the shape with color. Just draw strokes
-    translate(this.x, this.y); // translate the screen coordinate from top-left to middle of the canvas
-    beginShape(); // start to draw custom shape
-    for (var i = 0; i < this.res; i++) {
-      var randRad = min(this.rad, this.rad+random(-this.szDelta, this.szDelta));
-      this.blobObj.push({
-        "rad": randRad,
-        "x": randRad * cos(this.angle * i),
-        "y": randRad * sin(this.angle * i)
-      });
-      // circle(this.blobObj[i].x, this.blobObj[i].y, 5);
-      curveVertex(this.blobObj[i].x, this.blobObj[i].y); // add points to the custom shape
-    }
-    curveVertex(this.blobObj[0].x, this.blobObj[0].y);
-    curveVertex(this.blobObj[1].x, this.blobObj[1].y);
-    curveVertex(this.blobObj[2].x, this.blobObj[2].y);
-    endShape(); // we finish adding points
-    pop();
-  }
-}
+var hue;
+var sat = 90;
+var bright = 80;
 
 function preload() {
   wordSentimentDict = loadJSON('afinn165.json');
@@ -58,14 +25,16 @@ function preload() {
 
 
 function setup() {
-  createCanvas(400, 400); // window size
-  rad = 100; // radius of the circular path
-  res = 10; // the number of points 
-  angle = 360 / res; // angular distance between each point
-  angleMode(DEGREES); // enable the Degree mode not to make calculations easier.
+  createCanvas(600, 600);
   colorMode(HSB);
 
   background(40, 100, 90);
+
+
+  for(let i = 0; i < num; i++) {
+    particles.push(createVector(random(width), random(height)))
+    stroke(255)
+  }
 
   var txt = select('#txt');
   txt.input(typing);
@@ -96,13 +65,13 @@ function setup() {
         totalScore += Number(score);
         // scoredwords.push(' ' + word + ': ' + score);
         draw();
-      } // else {
-      //   score = 0;
-      // }
+      } 
+
       words.push(word);
-      lastWordScore = Number(score);
+      lastWordScore = score;
     }
   }
+
   // var scorePar = select('#score');
   // scorePar.html('score: ' + totalScore);
   // var comp = select('#comparative');
@@ -110,40 +79,61 @@ function setup() {
   // var wordlist = select('#wordlist');
   // wordlist.html(scoredwords);
 
-  // console.log(txt.value());
+  console.log(txt.value());
   }
 
 
 function draw() {
   // new word typed
-  // console.log("words.length: " + words.length);
-  // console.log("prevLength: " + prevLength);
+  console.log("words.length: " + words.length);
+  console.log("prevLength: " + prevLength);
+ 
   if (words.length > prevLength) {
-    var hue;
-    var sat = 90;
-    var bright = 80;
-
     console.log(words);
-
     console.log(lastWordScore);
+
+    //noiseSeed(millis());
     
     if (lastWordScore > 0) { 
       // positive
-      hue = random(70, 120);
-
+      hue = map(lastWordScore, 0, 1, 70, 120);
+      sat = 90
     } else if (lastWordScore < 0) {
       // negative
-      hue = random(0, 15);
-    } else {
+      hue = map(lastWordScore, -1, 0, 0, 20);
+      sat = 90
+    } else if (lastWordScore == 0) {
       // neutral
+      hue = random(20, 60);
+      sat = 50;
+    } else {
+      // not found
       hue = random(30, 60);
       sat = 2;
     }
     fill(color(hue, sat, bright));
 
-    blob = new Blob(random(0, width), random(0, height), lastWordScore * 100, lastWordScore + 0.1);
-    blob.display();
+    // blob = new Blob(random(0, width), random(0, height), lastWordScore * 100, lastWordScore + 0.1);
+    // blob.display();
     prevLength = words.length;
+  }
+  stroke(hue, sat, bright);
+  
+
+  for (let i = 0; i < num; i++) {
+    let p = particles[i]
+    point(p.x, p.y)
+    let n = noise(p.x * noiseScale, p.y * noiseScale);
+    let a = TAU * n
+    p.x += cos(a) 
+    p.y += sin(a)
+    if (!onScreen(p)) {
+      p.x = random(width)
+      p.y = random(height)
+    }
   }
 }
 
+function onScreen(v) {
+  return v.x >= 0 && v.x <= width && v.y >= 0 && v.y <= height;
+}
