@@ -14,6 +14,8 @@ const num = 2000;
 const noiseScale = 0.02
 const particles = [];
 
+var monoSynth;
+
 var hue;
 var sat = 90;
 var bright = 80;
@@ -72,6 +74,8 @@ function setup() {
     }
   }
 
+  monoSynth = new p5.MonoSynth();
+
   // var scorePar = select('#score');
   // scorePar.html('score: ' + totalScore);
   // var comp = select('#comparative');
@@ -86,6 +90,7 @@ function setup() {
 function draw() {
   // colorMode(RGBA)
   background(0, 0.1);
+  
 
   // new word typed
   // console.log("words.length: " + words.length);
@@ -95,6 +100,9 @@ function draw() {
     // console.log(words);
     // console.log(lastWordScore);
 
+    // play sound
+    playSound();
+    
     noiseSeed(millis());
     
     if (lastWordScore > 0) { 
@@ -118,7 +126,7 @@ function draw() {
     prevLength = words.length;
   }
   
-
+  // flow field
   for (let i = 0; i < num; i++) {
     let p = particles[i]
     stroke(hue, sat, bright);
@@ -137,4 +145,10 @@ function draw() {
 
 function onScreen(v) {
   return v.x >= 0 && v.x <= width && v.y >= 0 && v.y <= height;
+}
+
+function playSound() {
+  userStartAudio();
+  let note = random(['Fb4', 'G4']);
+  monoSynth.play(note, 1, 0, 1/4);
 }
